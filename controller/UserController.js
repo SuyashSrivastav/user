@@ -80,7 +80,7 @@ const signIn = async (req, res, next) => {
         errCode = 0;
         res.send(baseController.generateResponse(errCode, errMsg, {
             user: userData[0],
-            token: await redis.get((userData[0]._id).toString()).catch(e => next(e)),
+            token: tokenFound,
             current_login_time: new Date()
         }));
     }
