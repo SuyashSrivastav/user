@@ -2,7 +2,7 @@
 
 How to use:
 
-1.Make sure MongoDB is running on the system and port 8001 is free.
+1.Make sure MongoDB and Redis is running on the system and port 8001 is free.
 
 2.Download the project on the system and start with running the "npm i" command in the folder the project is downloaded.
 
