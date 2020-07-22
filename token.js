@@ -3,11 +3,13 @@ const jwt = require("jsonwebtoken");
 
 const JWT_PRIVATE_KEY = fs.readFileSync("./private.key");
 
+let expiration_day = 1
+
 const signOptions = {
   issuer: "Accubits User",
   subject: "Validate user",
   audience: "Users",
-  expiresIn: "365d",
+  expiresIn: (expiration_day).toString() + 'd',
   algorithm: "RS256"
 };
 
@@ -23,11 +25,16 @@ const getSignedToken = (payload) =>
 
 const increaseExpiration = (payload) =>
   new Promise((resolve, reject) => {
-    jwt.sign({
+
+    expiration_day = expiration_day + 1
+    signOptions.expiresIn = (expiration_day).toString() + 'd'
+
+    jwt.sign(
       payload,
-      iat: Math.floor(Date.now() / 1000) + 60
-    },'shhhhhh',
-      (err, token) => (err ? reject(err) : resolve(token)));
+      JWT_PRIVATE_KEY,
+      signOptions,
+      (err, token) => (err ? reject(err) : resolve(token))
+    );
   });
 
 const verifyToken = (req, res, next) => {
