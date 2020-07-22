@@ -4,7 +4,8 @@ const baseController = require("./BaseController");
 const redis = require("../Redis")
 
 const userService = require("../services/UserService")
-const token = require("../token")
+const token = require("../token");
+const { update } = require('../models/User');
 
 const signUp = async (req, res, next) => {
 
@@ -33,11 +34,13 @@ const signUp = async (req, res, next) => {
 
             if (created && JSON.stringify(created) !== '{}') {
                 /* generate token */
-                tokenFound = await token.getSignedToken({ id: created._id }).catch(e => next(e))
+                let tokenFound = await token.getSignedToken({ id: created._id }).catch(e => next(e))
 
-                let redisData = await redis.set(created._id,tokenFound).catch(e => next(e))
 
-                console.log(redisData)
+                let redisData = await redis.set(created._id, tokenFound).catch(e => next(e))
+
+                await userService.update({ _id: created._id },
+                    { $push: { previous_login_info_array: { $each: [{ token: tokenFound, login_date: new Date() }], $position: 0 } } })
 
                 errMsg = "success";
                 errCode = 0;
@@ -55,7 +58,7 @@ const signUp = async (req, res, next) => {
 
 const signIn = async (req, res, next) => {
 
-    let errMsg = "error";
+    let errMsg = "not-found";
     let errCode = 404;
 
     let name = req.body.name
@@ -67,9 +70,12 @@ const signIn = async (req, res, next) => {
         /* generate token */
         tokenFound = await token.increaseExpiration({ id: userData[0]._id }).catch(e => next(e))
 
-        let redisData = await redis.set(userData[0]._id,tokenFound).catch(e => next(e))
+        let redisData = await redis.set(userData[0]._id, tokenFound).catch(e => next(e))
 
-        await userService.update({_id:userData[0]._id},{$push:{login_info_array:{token:tokenFound,date:new Date()}}})
+        console.log(redisData)
+
+        await userService.update({ _id: userData[0]._id },
+            { $push: { previous_login_info_array: { $each: [{ token: tokenFound, login_date: new Date() }], $position: 0 } } })
 
         errMsg = "success";
         errCode = 0;
