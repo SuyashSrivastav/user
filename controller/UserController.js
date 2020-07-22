@@ -37,7 +37,7 @@ const signUp = async (req, res, next) => {
                 let tokenFound = await token.getSignedToken({ id: created._id }).catch(e => next(e))
 
 
-                let redisData = await redis.set((created._id).toString(), tokenFound).catch(e => next(e))
+                await redis.set((created._id).toString(), tokenFound).catch(e => next(e))
 
                 await userService.update({ _id: created._id },
                     { $push: { previous_login_info_array: { $each: [{ token: tokenFound, login_date: new Date() }], $position: 0 } } })
@@ -68,10 +68,10 @@ const signIn = async (req, res, next) => {
     let userData = await userService.get({ name: name, password: password }).catch(e => next(e))
     if (userData && userData.length > 0) {
         /* generate token */
-        tokenFound = await token.getSignedToken({ id: userData[0]._id }).catch(e => next(e))
-        let redisData = await redis.set((userData[0]._id).toString(), tokenFound).catch(e => next(e))
+        tokenFound = await token.increaseExpiration({ id: userData[0]._id }).catch(e => next(e))
 
-        console.log(redisData)
+        await redis.set((userData[0]._id).toString(), tokenFound).catch(e => next(e))
+
 
         await userService.update({ _id: userData[0]._id },
             { $push: { previous_login_info_array: { $each: [{ token: tokenFound, login_date: new Date() }], $position: 0 } } })
@@ -80,7 +80,8 @@ const signIn = async (req, res, next) => {
         errCode = 0;
         res.send(baseController.generateResponse(errCode, errMsg, {
             user: userData[0],
-            token: await redis.get((userData[0]._id).toString()).catch(e => next(e))
+            token: await redis.get((userData[0]._id).toString()).catch(e => next(e)),
+            current_login_time: new Date()
         }));
     }
     else {
@@ -100,7 +101,7 @@ const getUser = async (req, res, next) => {
     let userData = await userService.get({ _id: userId }).catch(e => next(e))
     if (userData && userData.length > 0) {
         /* generate token */
-        tokenFound = await token.getSignedToken({ id: userData[0]._id }).catch(e => next(e))
+        tokenFound = await redis.get((userData[0]._id).toString()).catch(e => next(e))
 
         errMsg = "success";
         errCode = 0;
