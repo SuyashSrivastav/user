@@ -44,7 +44,11 @@ const signUp = async (req, res, next) => {
 
                 errMsg = "success";
                 errCode = 0;
-                res.send(baseController.generateResponse(errCode, errMsg, { user: created, token: tokenFound ? tokenFound : '' }));
+                res.send(baseController.generateResponse(errCode, errMsg, {
+                    user: created,
+                    token: tokenFound ? tokenFound : '',
+                    current_login_time: new Date()
+                }));
             }
             else {
                 res.send(baseController.generateResponse(errCode, errMsg));
