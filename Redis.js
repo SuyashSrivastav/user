@@ -4,11 +4,11 @@ const get = async (id) => {
 
     var client = redis.createClient();
     client.on('connect', () => {
-        console.log("Connected....");
+        console.log("JWT Token Found in Redis.");
     })
 
     let obj = await new Promise((resolve, reject) => {
-        client.getall(id, async (err, obj) => {
+        client.get(id, async (err, obj) => {
             resolve(obj);
             reject(err);
         })
@@ -20,7 +20,7 @@ const set = async (id, objct) => {
 
     var client = redis.createClient();
     client.on('connect', () => {
-        console.log("Redis Connected....");
+        console.log("JWT Token Reset in Redis.");
     })
 
     let obj = await new Promise((resolve, reject) => {
