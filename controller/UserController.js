@@ -14,7 +14,7 @@ const signUp = async (req, res, next) => {
     let name = req.body.name
     let email = req.body.email
     let password = req.body.password
-    if (name && password) {
+    if (name && name.trim() != "" && password && password.trim() != "") {
         let userData = await userService.get({ name: name }).catch(e => next(e))
         if (userData && userData.length > 0) {
             errMsg = "username_exists"
